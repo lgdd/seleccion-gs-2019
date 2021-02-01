@@ -3,6 +3,7 @@ package mvc.portlet.portlet;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,13 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.mail.internet.InternetAddress;
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.portlet.Portlet;
-import javax.portlet.PortletException;
-import javax.portlet.PortletPreferences;
-import javax.portlet.ResourceRequest;
-import javax.portlet.ResourceResponse;
+import javax.portlet.*;
 
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.expando.kernel.model.ExpandoRow;
@@ -58,6 +53,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import mvc.portlet.util.DBConnectionUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Modified;
@@ -87,7 +83,27 @@ import mvc.portlet.util.FormUtil;
 	service = Portlet.class
 )
 public class FormPortlet extends MVCPortlet {
+	@Override
+	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
+			throws IOException, PortletException {
+		Connection conn = null;
+		Statement stmt = null;
+		try {
+			/*gk-audit-comment :- separating connection into DBConnectionUtil from the business logic
+				also, this logic for DB connection is in view layer, not sure about the usage,
+				moving this to a common Util class
+			 */
+			conn = DBConnectionUtil.getConnection();
+			stmt = conn.createStatement();
+			String sqlQuery = "select * from journalarticle";
+			ResultSet rs = stmt.executeQuery(sqlQuery);
+			renderRequest.setAttribute("<articleUrls", rs.getArray("articleUrl"));
+		} catch (Exception e) {
+			_log.error("Error while getting journal articles");
+		}
 
+		super.doView(renderRequest, renderResponse);
+	}
 
 	public void deleteData(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -107,17 +123,12 @@ public class FormPortlet extends MVCPortlet {
 
 		String databaseTableName = preferences.getValue(
 			"databaseTableName", StringPool.BLANK);
-		
-		
-		Connection conn = null;
-		Statement stmt = null;
-		try {
-		      Class.forName("com.mysql.jdbc.Driver");
 
-		      System.out.println("Connecting to a selected database...");
-		      conn = DriverManager.getConnection(DB_URL, USER, PASS);
-		      System.out.println("Connected database successfully...");
-		      System.out.println("Creating statement...");
+		Statement stmt = null;
+		Connection conn = null;
+		try {
+			//gk-audit-comment :- separating connection into DBConnectionUtil from the business logic
+			  conn = DBConnectionUtil.getConnection();
 		      stmt = conn.createStatement();
 
 		      String sql = "delete from ExpandoColumn where tableId = " + databaseTableName;
@@ -129,8 +140,13 @@ public class FormPortlet extends MVCPortlet {
 			  stmt.execute(sql);
 		} 
 		catch (Exception e) {
-		      e.printStackTrace();
-		}				    
+			_log.error("Exception creating connection");
+			e.getLocalizedMessage();
+		}
+		finally {
+			assert conn != null;
+			conn.close();
+		}
 	}
 
 	public void saveData(
@@ -383,7 +399,8 @@ public class FormPortlet extends MVCPortlet {
 				
 					try {
 						defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
-						System.out.println(defaultUserId);
+						//gk-audit-comment :- replacing sysouts with logger
+						_log.info(defaultUserId);
 					} catch (Exception e) {
 						throw new PortletException();
 					}
@@ -394,17 +411,18 @@ public class FormPortlet extends MVCPortlet {
 						try {
 							saveData(actionRequest, actionResponse);
 						} catch (Exception e) {
-							System.out.println("error");
+							_log.info("error");
 						}
 					}
 
 					
-				} else if (p == "delete") {
+				} else if (p.equals("delete")) { //gk-audit-comment:- String values are compared using '==', not 'equals()'
 					if (defaultUserId != 0) {
 						try {
 							saveData(actionRequest, actionResponse);	
 						} catch (Exception e) {
-							System.out.println("error");
+							//gk-audit-comment :- removing sysouts
+							_log.error("error", e);
 						}
 					}
 					
@@ -425,18 +443,18 @@ public class FormPortlet extends MVCPortlet {
 	}
 
 	protected String getMailBody(Map<String, String> fieldsMap) {
-		String mailBody = "";
+		StringBuilder mailBody = new StringBuilder();
 
 		for (String fieldLabel : fieldsMap.keySet()) {
 			String fieldValue = fieldsMap.get(fieldLabel);
-
-			mailBody += fieldLabel;
-			mailBody += " : ";
-			mailBody += fieldValue;
-			mailBody += CharPool.NEW_LINE;
+			//gk-audit-comment :- String concatenation '+=' in loop mailBody type changed to StringBuilder
+			mailBody.append(fieldLabel);
+			mailBody.append(" : ");
+			mailBody.append(fieldValue);
+			mailBody.append(CharPool.NEW_LINE);
 		}
 
-		return mailBody;
+		return mailBody.toString();
 	}
 
 	protected boolean saveDatabase(
@@ -525,7 +543,7 @@ public class FormPortlet extends MVCPortlet {
 			return true;
 		}
 		catch (Exception e) {
-			System.out.println("error");
+			_log.error("error");
 		}
 		
 		return false;
@@ -608,11 +626,6 @@ public class FormPortlet extends MVCPortlet {
 	private FormPortletConfiguration formPortletConfiguration;
 	
 	private static Log _log = LogFactoryUtil.getLog(FormPortlet.class);
-	
-	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-	private static final String DB_URL = "jdbc:mysql://localhost/FORM";
-	private static final String USER = "username";
-	private static final String PASS = "password";
 	
 	private static final String SAVED_DATA_CACHE = "FORM_SAVED_DATA_CACHE";	
 }

@@ -1,14 +1,14 @@
 package mvc.portlet.configuration;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.portlet.PortletConfig;
-import javax.portlet.RenderParameters;
+import javax.portlet.*;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.util.ParamUtil;
 
+import com.liferay.portal.kernel.util.Validator;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
@@ -35,7 +35,11 @@ extends DefaultConfigurationAction {
 
 		RenderParameters at = actionRequest.getRenderParameters();		
 		String emf = at.getValue("emailFromAddress");
-		for (int i = 0; i < emf.length(); i++){ 
+		//gk-audit-comment begin :- we can use a Liferay Validator to Validate Email instead of this for block
+		if(!Validator.isEmailAddress(emf)) {
+			throw new PortletException("Invalid email address");
+		}
+		/* for (int i = 0; i < emf.length(); i++){
 			if(emf.startsWith(" ")) {
 				String s = emf.substring(0, 1);
 				emf = s;
@@ -52,15 +56,18 @@ extends DefaultConfigurationAction {
 			if (!emf.contains("@")) {
 			if (!emf.contains(".")) {
 			if (!(emf.contains("com") || !emf.contains("net") || !emf.contains("es"))) {
-			System.out.println("not valid");
+				//gk-audit-comment:- sysouts replaced with logger
+				_log.error("not valid");
 					throw new Exception();
 					}
 				}
 			}
-		}
+		} */
 		if (emf.startsWith("1")) {
-			System.out.println("begins 1");
+			//gk-audit-comment:- sysouts replaced with logger
+			_log.info("begins 1");
 		}
+		//gk-audit-comment end
 		String dataRootDir = ParamUtil.getString(actionRequest, "dataRootDir");String emailFromName = ParamUtil.getString(actionRequest, "emailFromName");
 		String isDataFilePathChangeable = ParamUtil.getString(actionRequest, "isDataFilePathChangeable");
 		String isValidationScriptEnabled = ParamUtil.getString(actionRequest, "isValidationScriptEnabled");
@@ -73,6 +80,6 @@ extends DefaultConfigurationAction {
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
 
-	
+	private static Log _log = LogFactoryUtil.getLog(FormPortletConfiguration.class);
 
 }
