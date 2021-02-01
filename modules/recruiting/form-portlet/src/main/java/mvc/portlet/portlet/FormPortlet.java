@@ -88,7 +88,6 @@ import mvc.portlet.util.FormUtil;
 )
 public class FormPortlet extends MVCPortlet {
 
-
 	public void deleteData(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
@@ -113,11 +112,10 @@ public class FormPortlet extends MVCPortlet {
 		Statement stmt = null;
 		try {
 		      Class.forName("com.mysql.jdbc.Driver");
-
-		      System.out.println("Connecting to a selected database...");
+		      _log.info("Connecting to a selected database...");
 		      conn = DriverManager.getConnection(DB_URL, USER, PASS);
-		      System.out.println("Connected database successfully...");
-		      System.out.println("Creating statement...");
+		      _log.info("Connected database successfully...");
+		      _log.info("Creating statement...");
 		      stmt = conn.createStatement();
 
 		      String sql = "delete from ExpandoColumn where tableId = " + databaseTableName;
@@ -129,7 +127,8 @@ public class FormPortlet extends MVCPortlet {
 			  stmt.execute(sql);
 		} 
 		catch (Exception e) {
-		      e.printStackTrace();
+			_log.error("Exception creating connection");
+			e.getLocalizedMessage();
 		}				    
 	}
 
@@ -383,7 +382,8 @@ public class FormPortlet extends MVCPortlet {
 				
 					try {
 						defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
-						System.out.println(defaultUserId);
+						//gk-audit-comment :- replacing sysouts with logger
+						_log.info(defaultUserId);
 					} catch (Exception e) {
 						throw new PortletException();
 					}
@@ -394,17 +394,18 @@ public class FormPortlet extends MVCPortlet {
 						try {
 							saveData(actionRequest, actionResponse);
 						} catch (Exception e) {
-							System.out.println("error");
+							_log.info("error");
 						}
 					}
 
 					
-				} else if (p == "delete") {
+				} else if (p.equals("delete")) { //gk-audit-comment:- String values are compared using '==', not 'equals()'
 					if (defaultUserId != 0) {
 						try {
 							saveData(actionRequest, actionResponse);	
 						} catch (Exception e) {
-							System.out.println("error");
+							//gk-audit-comment :- removing sysouts
+							_log.error("error", e);
 						}
 					}
 					
@@ -425,18 +426,18 @@ public class FormPortlet extends MVCPortlet {
 	}
 
 	protected String getMailBody(Map<String, String> fieldsMap) {
-		String mailBody = "";
+		StringBuilder mailBody = new StringBuilder();
 
 		for (String fieldLabel : fieldsMap.keySet()) {
 			String fieldValue = fieldsMap.get(fieldLabel);
-
-			mailBody += fieldLabel;
-			mailBody += " : ";
-			mailBody += fieldValue;
-			mailBody += CharPool.NEW_LINE;
+			//gk-audit-comment :- String concatenation '+=' in loop mailBody type changed to StringBuilder
+			mailBody.append(fieldLabel);
+			mailBody.append(" : ");
+			mailBody.append(fieldValue);
+			mailBody.append(CharPool.NEW_LINE);
 		}
 
-		return mailBody;
+		return mailBody.toString();
 	}
 
 	protected boolean saveDatabase(
@@ -525,7 +526,7 @@ public class FormPortlet extends MVCPortlet {
 			return true;
 		}
 		catch (Exception e) {
-			System.out.println("error");
+			_log.error("error");
 		}
 		
 		return false;
