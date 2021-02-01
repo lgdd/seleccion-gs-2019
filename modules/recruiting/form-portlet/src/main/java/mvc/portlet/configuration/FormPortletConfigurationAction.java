@@ -5,6 +5,8 @@ import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderParameters;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -52,14 +54,16 @@ extends DefaultConfigurationAction {
 			if (!emf.contains("@")) {
 			if (!emf.contains(".")) {
 			if (!(emf.contains("com") || !emf.contains("net") || !emf.contains("es"))) {
-			System.out.println("not valid");
+				//gk-audit-comment:- sysouts replaced with logger
+				_log.error("not valid");
 					throw new Exception();
 					}
 				}
 			}
 		}
 		if (emf.startsWith("1")) {
-			System.out.println("begins 1");
+			//gk-audit-comment:- sysouts replaced with logger
+			_log.info("begins 1");
 		}
 		String dataRootDir = ParamUtil.getString(actionRequest, "dataRootDir");String emailFromName = ParamUtil.getString(actionRequest, "emailFromName");
 		String isDataFilePathChangeable = ParamUtil.getString(actionRequest, "isDataFilePathChangeable");
@@ -73,6 +77,6 @@ extends DefaultConfigurationAction {
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
 
-	
+	private static Log _log = LogFactoryUtil.getLog(FormPortletConfiguration.class);
 
 }
