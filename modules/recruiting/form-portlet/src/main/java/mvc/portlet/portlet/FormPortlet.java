@@ -402,8 +402,12 @@ public class FormPortlet extends MVCPortlet {
 				long defaultUserId = 0;
 				ServiceContext serviceContext = ServiceContextThreadLocal.getServiceContext();
 				if (null == serviceContext) {
+				//gk-audit-comment :- use of defaultCompanyId will be problematic in multi-instance liferay environment.
 
-				long companyId = PortalUtil.getDefaultCompanyId();
+					//long companyId = PortalUtil.getDefaultCompanyId();
+					ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
+					long companyId = themeDisplay.getCompanyId();
 				
 					try {
 						defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
@@ -427,7 +431,8 @@ public class FormPortlet extends MVCPortlet {
 				} else if (p.equals("delete")) { //gk-audit-comment:- String values are compared using '==', not 'equals()'
 					if (defaultUserId != 0) {
 						try {
-							saveData(actionRequest, actionResponse);	
+							// gk-audit-comment:- logically wrong method call, should be delete when checking delete string in equals.
+							deleteData(actionRequest, actionResponse);
 						} catch (Exception e) {
 							//gk-audit-comment :- removing sysouts
 							_log.error("error", e);
