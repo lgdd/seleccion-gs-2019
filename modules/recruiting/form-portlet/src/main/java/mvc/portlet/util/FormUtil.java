@@ -70,61 +70,47 @@ public class FormUtil {
 		try {
 			DynamicQuery query = DynamicQueryFactoryUtil.forClass(ExpandoTable.class).add(PropertyFactoryUtil.forName("tableName").eq(tableName));
 			List<ExpandoTable> li=ExpandoTableLocalServiceUtil.dynamicQuery(query);			
-			if (li == null || li.size() == 0) {
-				expandoTable = addTable(companyId, tableName);
-
-				int i = 1;
-	
-				String fieldLabel = preferences.getValue(
-					"fieldLabel" + i, StringPool.BLANK);
-				String fieldType = preferences.getValue(
-					"fieldType" + i, StringPool.BLANK);
-	
-				while ((i == 1) || Validator.isNotNull(fieldLabel)) {
-					if (!StringUtil.equalsIgnoreCase(fieldType, "paragraph")) {
-						ExpandoColumnLocalServiceUtil.addColumn(
-							expandoTable.getTableId(), fieldLabel,
-							ExpandoColumnConstants.STRING);
-					}
-	
-					i++;
-	
-					fieldLabel = preferences.getValue(
-						"fieldLabel" + i, StringPool.BLANK);
-					fieldType = preferences.getValue(
-						"fieldType" + i, StringPool.BLANK);
-				}				
+			if (li == null || li.size() == 0){
+				//gk-audit-comment begin :- moving duplicate to a new function call
+				expandoTable = createExpandoTable(companyId, tableName, preferences);
+				//gk-audit-comment end :- moving duplicate to a new function call
 			}
 		}
 		catch (Exception nste) {
-			expandoTable = addTable(companyId, tableName);
+			//gk-audit-comment begin :- moving duplicate to a new function call
+			expandoTable = createExpandoTable(companyId, tableName, preferences);
+			//gk-audit-comment end :- moving duplicate to a new function call
+		}
+		return expandoTable;
+	}
+	private static ExpandoTable createExpandoTable(long companyId, String tableName, PortletPreferences preferences)
+			throws PortalException{
+			ExpandoTable thisExpandoTable;
+			thisExpandoTable = addTable(companyId, tableName);
 
 			int i = 1;
 
 			String fieldLabel = preferences.getValue(
-				"fieldLabel" + i, StringPool.BLANK);
+					"fieldLabel" + i, StringPool.BLANK);
 			String fieldType = preferences.getValue(
-				"fieldType" + i, StringPool.BLANK);
+					"fieldType" + i, StringPool.BLANK);
 
 			while ((i == 1) || Validator.isNotNull(fieldLabel)) {
 				if (!StringUtil.equalsIgnoreCase(fieldType, "paragraph")) {
 					ExpandoColumnLocalServiceUtil.addColumn(
-						expandoTable.getTableId(), fieldLabel,
-						ExpandoColumnConstants.STRING);
+							thisExpandoTable.getTableId(), fieldLabel,
+							ExpandoColumnConstants.STRING);
 				}
 
 				i++;
 
 				fieldLabel = preferences.getValue(
-					"fieldLabel" + i, StringPool.BLANK);
+						"fieldLabel" + i, StringPool.BLANK);
 				fieldType = preferences.getValue(
-					"fieldType" + i, StringPool.BLANK);
+						"fieldType" + i, StringPool.BLANK);
 			}
+		return thisExpandoTable;
 		}
-
-		return expandoTable;
-	}
-
 	public static String getEmailFromAddress(
 			PortletPreferences preferences, long companyId)
 		throws SystemException {
@@ -288,7 +274,7 @@ public class FormUtil {
 				"The following script has execution errors:\n" +
 					validationScript + "\n" + e.getMessage();
 
-			System.out.println(msg);
+			_log.error(msg);
 
 			throw new Exception(msg, e);
 		}
