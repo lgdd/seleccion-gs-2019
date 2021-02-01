@@ -11,16 +11,13 @@ public class DBConnectionUtil {
 
     private static Connection conn = null;
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    private static final String DB_URL = "jdbc:mysql://localhost/FORM";
-    private static final String USER = "username";
-    private static final String PASS = "password";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/demo_omnichannel71";
+    private static final String USER = "root";
+    private static final String PASS = "root";
     private static Log _log = LogFactoryUtil.getLog(DBConnectionUtil.class);
 
     static
     {
-        String url = "jdbc:mysql:// localhost:3306/org";
-        String user = "root";
-        String pass = "root";
         try {
             Class.forName(JDBC_DRIVER);
             _log.info("Connecting to a selected database...");

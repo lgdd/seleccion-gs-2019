@@ -18,6 +18,7 @@ import javax.portlet.*;
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.expando.kernel.model.ExpandoRow;
 import com.liferay.expando.kernel.service.ExpandoRowLocalServiceUtil;
+import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.expando.kernel.service.ExpandoValueLocalServiceUtil;
 import com.liferay.mail.kernel.model.MailMessage;
 import com.liferay.mail.kernel.service.MailServiceUtil;
@@ -61,6 +62,7 @@ import org.osgi.service.component.annotations.Modified;
 import mvc.portlet.configuration.FormPortletConfiguration;
 import mvc.portlet.constants.FormPortletKeys;
 import mvc.portlet.util.FormUtil;
+import org.osgi.service.component.annotations.Reference;
 
 
 /**
@@ -111,6 +113,7 @@ public class FormPortlet extends MVCPortlet {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+		long companyId = themeDisplay.getCompanyId();
 
 		String portletId = PortalUtil.getPortletId(actionRequest);
 
@@ -123,8 +126,12 @@ public class FormPortlet extends MVCPortlet {
 
 		String databaseTableName = preferences.getValue(
 			"databaseTableName", StringPool.BLANK);
+			//gk-audit-comment :- we should use the api call to ExpandoTableLocalService
+			// to do DB operations in Liferay Environment
 
-		Statement stmt = null;
+		_expandoTableLocalService.deleteTable(companyId, FormUtil.class.getName(), databaseTableName);
+
+		/*Statement stmt = null;
 		Connection conn = null;
 		try {
 			//gk-audit-comment :- separating connection into DBConnectionUtil from the business logic
@@ -146,7 +153,8 @@ public class FormPortlet extends MVCPortlet {
 		finally {
 			assert conn != null;
 			conn.close();
-		}
+		}*/
+
 	}
 
 	public void saveData(
@@ -622,7 +630,8 @@ public class FormPortlet extends MVCPortlet {
 	protected void activate(Map<Object, Object> properties) {
 		formPortletConfiguration = ConfigurableUtil.createConfigurable(FormPortletConfiguration.class, properties);
 	}
-	
+	@Reference
+	private ExpandoTableLocalService _expandoTableLocalService;
 	private FormPortletConfiguration formPortletConfiguration;
 	
 	private static Log _log = LogFactoryUtil.getLog(FormPortlet.class);
