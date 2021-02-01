@@ -35,7 +35,9 @@ public class FormPortletDisplayContext {
 
                 fpc = c.getPortletInstanceConfiguration(
                     FormPortletConfiguration.class, l, PortalUtil.getPortletId(req));
-                        } catch (Exception ce) {
+                        }
+                        //gk-audit-comment:- Empty 'catch' block, renamed param to ignored.
+                        catch (Exception ignored) {
                 
                         }
                         } else {
@@ -43,7 +45,8 @@ public class FormPortletDisplayContext {
                 try {
             fpc = portletDisplay.getPortletInstanceConfiguration(FormPortletConfiguration.class);
                             } catch (Exception ce) {
-        ce.printStackTrace();
+                    //gk-audit-comment:- changed printstacktrace to getMessage.
+        ce.getMessage();
         }
         }
     }
