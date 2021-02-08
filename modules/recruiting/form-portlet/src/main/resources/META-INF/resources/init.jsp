@@ -11,7 +11,7 @@
 <%@ page import="mvc.portlet.configuration.FormPortletConfiguration" %>
 <%@ page import="mvc.portlet.configuration.FormPortletDisplayContext" %>
 
-<%@ page import="com.liferay.portal.kernel.util.StringPool" %>
+<%@ page import="com.liferay.petra.string.StringPool" %>
 <%@ page import="com.liferay.portal.kernel.util.Validator" %>
 
 <liferay-theme:defineObjects />
