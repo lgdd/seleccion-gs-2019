@@ -20,7 +20,6 @@
 <%@ include file="/init.jsp" %>
 
 <liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
-
 <liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
 
 <aui:form action="${configurationActionURL}" method="post" name="fm">
@@ -37,10 +36,10 @@
 	<aui:fieldset>
 		<aui:input name="csvSeparator" placeholder="CSV Separator" type="text" value="${formPortletConfiguration.csvSeparator()}"/>
 		<aui:input name="dataRootDir" placeholder="Data Root Dir" type="text" value="${formPortletConfiguration.dataRootDir()}"/>
-		<aui:input name="emailFromAddress" placeholder="Email From Address" type="text" value="<%= formPortletConfiguration.emailFromAddress() %>"/>
-		<aui:input name="emailFromName" placeholder="Email From Name" type="text" value="<%= formPortletConfiguration.emailFromName() %>"/>
-		<aui:input name="isDataFilePathChangeable" placeholder="Is Data File Path Changeable?" type="checkbox" value="<%= formPortletConfiguration.isDataFilePathChangeable() %>"/>
-		<aui:input name="isValidationScriptEnabled" placeholder="Is Validation Script Changeable?" type="checkbox" value="<%= formPortletConfiguration.isValidationScriptEnabled() %>"/>
+		<aui:input name="emailFromAddress" placeholder="Email From Address" type="text" value="${formPortletConfiguration.emailFromAddress()}"/>
+		<aui:input name="emailFromName" placeholder="Email From Name" type="text" value="${formPortletConfiguration.emailFromName()}"/>
+		<aui:input name="isDataFilePathChangeable" placeholder="Is Data File Path Changeable?" type="checkbox" value="${formPortletConfiguration.isDataFilePathChangeable()}"/>
+		<aui:input name="isValidationScriptEnabled" placeholder="Is Validation Script Changeable?" type="checkbox" value="${formPortletConfiguration.isValidationScriptEnabled()}"/>
 	</aui:fieldset>
 
 	<aui:button-row>
