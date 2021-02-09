@@ -5,8 +5,10 @@ import static com.liferay.petra.string.StringPool.FORWARD_SLASH;
 import static com.liferay.petra.string.StringPool.NEW_LINE;
 import static com.liferay.portal.kernel.util.StringUtil.equalsIgnoreCase;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.portlet.PortletPreferences;
 
@@ -17,13 +19,11 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Modified;
 
-import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoRowLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
@@ -45,7 +45,7 @@ import mvc.portlet.constants.FormPortletKeys;
 public class FormUtil {
 
 	private static final Log _log = LogFactoryUtil.getLog(FormUtil.class);
-	private static final String CSV_EXTENSION = ".csv";
+	public static final String CSV_EXTENSION = ".csv";
 
 	private volatile static FormPortletConfiguration formPortletConfiguration;
 
@@ -84,6 +84,19 @@ public class FormUtil {
 	private static void addDynamicFields(ExpandoTable expandoTable, PortletPreferences preferences)
 			throws PortalException {
 
+		Map<String, String> fields = extractFields(preferences);
+
+		for (Entry<String, String> entry : fields.entrySet()) {
+			String fieldLabel = entry.getKey();
+			ExpandoColumnLocalServiceUtil.addColumn(expandoTable.getTableId(), fieldLabel,
+					ExpandoColumnConstants.STRING);
+		}
+
+	}
+
+	public static Map<String, String> extractFields(PortletPreferences preferences) {
+		Map<String, String> fields = new LinkedHashMap<>();
+
 		int i = 1;
 		String fieldLabel;
 
@@ -91,14 +104,16 @@ public class FormUtil {
 			fieldLabel = preferences.getValue("fieldLabel" + i, BLANK);
 			String fieldType = preferences.getValue("fieldType" + i, BLANK);
 
-			if (!BLANK.equals(fieldLabel) && !equalsIgnoreCase(fieldType, "paragraph")) {
-				ExpandoColumnLocalServiceUtil.addColumn(expandoTable.getTableId(), fieldLabel,
-						ExpandoColumnConstants.STRING);
+			if (BLANK.equals(fieldLabel) || equalsIgnoreCase(fieldType, "paragraph")) {
+				continue;
 			}
 
+			fields.put(fieldLabel, fieldType);
 			i++;
 
 		} while (Validator.isNotNull(fieldLabel));
+
+		return fields;
 	}
 
 	public static String getEmailFromAddress(PortletPreferences preferences, long companyId) throws SystemException {
@@ -120,11 +135,6 @@ public class FormUtil {
 		sb.append(portletId);
 		sb.append(CSV_EXTENSION);
 		return sb.toString();
-	}
-
-	public static String getNewDatabaseTableName(String portletId) throws SystemException {
-		long formId = CounterLocalServiceUtil.increment(FormUtil.class.getName());
-		return portletId + StringPool.UNDERLINE + formId;
 	}
 
 	public static int getTableRowsCount(long companyId, String tableName) throws SystemException {
