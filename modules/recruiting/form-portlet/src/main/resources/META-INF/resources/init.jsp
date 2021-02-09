@@ -17,23 +17,3 @@
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
-<%
-    FormPortletDisplayContext formPortletDisplayContext = new FormPortletDisplayContext(renderRequest);
-   	FormPortletConfiguration formPortletConfiguration = formPortletDisplayContext.getFormPortletConfiguration();
-
-	String csvSeparator = StringPool.BLANK;
-	boolean isDataFilePathChangeable = false;
-	String dataRootDir = StringPool.BLANK;
-    String emailFromAddress = StringPool.BLANK;
-    String emailFromName = StringPool.BLANK;
-    boolean isValidationScriptEnabled = false;
-
-    if (Validator.isNotNull(formPortletConfiguration)) {
-		csvSeparator = formPortletConfiguration.csvSeparator();
-		isDataFilePathChangeable = formPortletConfiguration.isDataFilePathChangeable();
-		dataRootDir = formPortletConfiguration.dataRootDir();
-		emailFromAddress = formPortletConfiguration.emailFromAddress();
-		emailFromName = formPortletConfiguration.emailFromName();
-		isValidationScriptEnabled = formPortletConfiguration.isValidationScriptEnabled();
-	}
-%>
